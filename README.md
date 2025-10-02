@@ -1,272 +1,171 @@
-# Fetch.ai Merchandise Shopping Agent Workflow
+# Fetch.ai Shopping Agent - Visual Workflow Diagram
 
-## Overview
-An intelligent AI agent that handles the complete shopping experience for Fetch.ai merchandise (T-shirts) including product selection, order placement, payment processing, and order tracking.
+## Complete Shopping Agent Flowchart
 
-## Workflow Diagram
+```mermaid
+flowchart TD
+    A["🚀 User Query: 'buy fetch t-shirt'"] --> B["🤖 Agent Response: Show photos + sizes + prices"]
+    B --> C["👤 User Selection: 'select t-shirt #2'"]
+    C --> D["📝 Agent: 'Provide your details:'"]
+    D --> E["📋 User Input:<br/>• Name<br/>• Address<br/>• Mobile<br/>• Password"]
+    E --> F["💾 Supabase: Save order<br/>• Encrypt password<br/>• Generate Order ID<br/>• Status: Pending"]
+    F --> G["💳 Razorpay: Send payment link"]
+    G --> H["💰 User completes payment"]
+    H --> I["✅ Supabase: Update order<br/>• Payment details<br/>• Status: Paid"]
+    I --> J["📧 Send email confirmation<br/>• Order details<br/>• Tracking ID"]
+    J --> K["🎉 Order Complete"]
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           SHOPPING PHASE                                        │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                 │
-│  USER QUERY: "I want to buy Fetch.ai T-shirt"                                  │
-│           ↓                                                                    │
-│  AGENT RESPONSE: T-shirt photos + sizes + prices                               │
-│           ↓                                                                    │
-│  USER SELECTION: "Select T-shirt #2 with size M"                              │
-│           ↓                                                                    │
-│  AGENT REQUEST: "Please provide details:"                                     │
-│           ↓                                                                    │
-│  USER DETAILS: Name + Address + Mobile + Password                             │
-│           ↓                                                                    │
-│  SUPABASE: Save order + Generate Order ID + Encrypt password                  │
-│           ↓                                                                    │
-│  RAZORPAY: Payment link sent to user                                          │
-│           ↓                                                                    │
-│  USER PAYMENT: Complete payment                                               │
-│           ↓                                                                    │
-│  SUPABASE: Update with payment details + status "Paid"                        │
-│           ↓                                                                    │
-│  CONFIRMATION: Email sent + Tracking ID provided                             │
-│                                                                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
+    %% Tracking Flow
+    K --> L["🔍 Tracking Phase Start"]
+    L --> M["📱 User Login:<br/>Mobile + Password"]
+    M --> N{"🔐 Authentication<br/>Successful?"}
+    N -->|Yes| O["👋 Agent: 'Welcome back, [Name]!'"]
+    N -->|No| P["❌ Invalid credentials"]
+    P --> M
+    O --> Q["📊 User: 'Track order' + Tracking ID"]
+    Q --> R["🔍 Supabase: Fetch order details"]
+    R --> S["📈 Agent: Order status + progress"]
 
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           TRACKING PHASE                                       │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                 │
-│  USER LOGIN: Mobile Number + Password                                           │
-│           ↓                                                                    │
-│  AGENT AUTH: "Welcome back, [Name]!"                                           │
-│           ↓                                                                    │
-│  USER REQUEST: "Track my order" + Tracking ID                                  │
-│           ↓                                                                    │
-│  AGENT RESPONSE: Order status + delivery details + progress                    │
-│                                                                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
+    %% Error Handling
+    H --> T{"💳 Payment<br/>Successful?"}
+    T -->|Yes| I
+    T -->|No| U["⚠️ Payment failed - Retry"]
+    U --> G
 
-## Complete Flow States
+    %% Styling
+    classDef userAction fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef agentAction fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef databaseAction fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef paymentAction fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef errorAction fill:#ffebee,stroke:#c62828,stroke-width:2px
 
-```
-[START] → [PRODUCT_SHOW] → [PRODUCT_SELECT] → [DETAILS_COLLECT] → [ORDER_SAVE] 
-    ↓                                                                      ↓
-[PAYMENT_LINK] ← [PAYMENT_PROCESS] ← [SUPABASE_UPDATE] ← [CONFIRMATION] 
-    ↓                                                                      ↓
-[COMPLETED] → [EMAIL_SENT] → [TRACKING_ID_GENERATED] → [SHIPPING_PROCESS]
-                                                              ↓
-[TRACKING_LOGIN] → [AUTHENTICATE] → [TRACK_ORDER] → [STATUS_UPDATE]
+    class A,C,E,M,Q userAction
+    class B,D,O,R,S agentAction
+    class F,I databaseAction
+    class G,H paymentAction
+    class P,U errorAction
 ```
 
-## Complete Workflow
+## Detailed Shopping Flow with Database Operations
 
-### Phase 1: Product Selection & Ordering
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant A as 🤖 Agent
+    participant S as 💾 Supabase
+    participant R as 💳 Razorpay
+    participant E as 📧 Email Service
 
-#### 1. Initial Query
-```
-User → Agent: "I want to buy Fetch.ai T-shirt"
-```
+    Note over U,E: Phase 1: Shopping Flow
+    U->>A: "I want to buy Fetch.ai T-shirt"
+    A->>U: Show product photos, sizes, prices
+    U->>A: "Select T-shirt #2, size M"
+    A->>U: "Please provide your details"
+    U->>A: Name, Address, Mobile, Password
+    A->>S: Save order (password encrypted)
+    S->>A: Order ID generated
+    A->>R: Create payment link
+    R->>U: Payment gateway
+    U->>R: Complete payment
+    R->>A: Payment confirmation
+    A->>S: Update order status = "PAID"
+    A->>E: Send confirmation email
+    A->>U: Order successful + Tracking ID
 
-#### 2. Product Display
-```
-Agent → User: 
-- T-shirt photos
-- Available sizes (S, M, L, XL, XXL)
-- Prices for each size
-- Product variants/colors
-```
-
-#### 3. Product Selection
-```
-User → Agent: "Select T-shirt #2" (with size preference)
-Agent → User: Confirms selection with details
-```
-
-#### 4. Customer Details Collection
-```
-Agent → User: "Please provide your details:"
-Required Information:
-- Full Name
-- Complete Address
-- Mobile Number
-- Password (for future tracking)
-```
-
-#### 5. Database Storage
-```
-Agent → Supabase: Save order details
-- Generate unique Order ID
-- Store user details (password encrypted)
-- Link with selected T-shirt details
-- Set status: "Pending Payment"
+    Note over U,E: Phase 2: Tracking Flow
+    U->>A: Mobile + Password
+    A->>S: Verify credentials
+    A->>U: "Welcome back, [Name]!"
+    U->>A: "Track order: TRK123456"
+    A->>S: Fetch order details
+    S->>A: Order status + shipment info
+    A->>U: Order progress details
 ```
 
-#### 6. Payment Processing
-```
-Agent → User: Razorpay payment link
-User → Razorpay: Complete payment
-Agent → Supabase: Update order with:
-- Payment ID
-- Transaction details
-- Status: "Paid"
-```
+## Data Flow Architecture
 
-#### 7. Order Confirmation
-```
-Agent → User: 
-- Order successful confirmation
-- Unique tracking ID
-- Email confirmation sent automatically
-- Order summary
-```
-
----
-
-### Phase 2: Order Tracking
-
-#### 1. User Authentication
-```
-User → Agent: 
-- Mobile Number
-- Password
-Agent → System: Verify credentials
-Agent → User: "Welcome back, [Name]!"
-```
-
-#### 2. Track Order
-```
-User → Agent: "Track my order" + Tracking ID
-Agent → Supabase: Fetch order details
-Agent → User: 
-- Order Status
-- Expected delivery date
-- Current location
-- Order history
+```mermaid
+graph LR
+    subgraph "Frontend Layer"
+        U[👤 User Chat Interface]
+    end
+    
+    subgraph "Agent Layer"
+        A[🤖 Shopping Agent<br/>• NLP Processing<br/>• Conversation Management<br/>• Integration Hub]
+    end
+    
+    subgraph "Database Layer"
+        S[💾 Supabase<br/>• Orders Table<br/>• Products Table<br/>• User Auth]
+    end
+    
+    subgraph "External Services"
+        R[💳 Razorpay<br/>Payment Gateway]
+        E[📧 Email Service<br/>SMTP/AWS SES]
+        P[📦 Product Catalog<br/>Inventory API]
+    end
+    
+    U <--> A
+    A <--> S
+    A <--> R
+    A <--> E
+    A <--> P
+    
+    style A fill:#e1f5fe
+    style S fill:#e8f5e8
+    style R fill:#fff3e0
+    style E fill:#f3e5f5
+    style P fill:#fce4ec
 ```
 
----
+## Order Status Flow
 
-## System Architecture
-
-### Components
-1. **AI Agent** - Main conversation handler
-2. **Supabase Database** - Order storage and management
-3. **Razorpay** - Payment processing
-4. **Email Service** - Order confirmations
-5. **Product Catalog** - T-shirt inventory and photos
-
-### Database Schema (Supabase)
-
-```sql
--- Orders Table
-CREATE TABLE orders (
-  id SERIAL PRIMARY KEY,
-  order_id VARCHAR(50) UNIQUE NOT NULL,
-  user_name VARCHAR(100) NOT NULL,
-  user_mobile VARCHAR(15) NOT NULL,
-  user_address TEXT NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  product_id INTEGER NOT NULL,
-  product_size VARCHAR(10) NOT NULL,
-  product_price DECIMAL(10,2) NOT NULL,
-  payment_id VARCHAR(100),
-  payment_status VARCHAR(20),
-  order_status VARCHAR(20) DEFAULT 'pending',
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Products Table
-CREATE TABLE products (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  description TEXT,
-  image_url VARCHAR(255),
-  sizes VARCHAR(50),
-  prices JSONB,
-  available BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT NOW()
-);
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING: User creates order
+    PENDING --> PAID: Payment successful
+    PAID --> PROCESSING: Payment confirmed
+    PROCESSING --> PREPARED: Inventory allocated
+    PREPARED --> SHIPPED: Package dispatched
+    SHIPPED --> IN_TRANSIT: In delivery
+    IN_TRANSIT --> DELIVERED: Order completed
+    
+    PAID --> FAILED: Payment failed
+    FAILED --> PENDING: Retry payment
+    
+    DELIVERED --> [*]
+    
+    note right of PROCESSING: Email confirmation sent
+    note right of SHIPPED: Tracking ID provided
 ```
 
----
+## Security & Data Protection Flow
 
-## Security Features
+```mermaid
+flowchart TD
+    A["🔐 User provides password"] --> B["🔒 Agent encrypts with bcrypt"]
+    B --> C["💾 Store hash in Supabase"]
+    
+    D["📱 User login attempt"] --> E["🔍 Agent queries database"]
+    E --> F["📊 Compare with stored hash"]
+    F --> G{"✅ Hash match?"}
+    G -->|Yes| H["🎉 Authentication successful"]
+    G -->|No| I["❌ Access denied"]
+    
+    J["💰 Payment data"] --> K["🚀 Razorpay secure gateway"]
+    L["📧 Email data"] --> M["🔒 OAuth2 encrypted service"]
+    
+    style B fill:#e8f5e8
+    style H fill:#e8f5e8
+    style I fill:#ffebee
+    style K fill:#fff3e0
+    style M fill:#e1f5fe
+```
 
-### Password Protection
-- User passwords are encrypted before storing in Supabase
-- Passwords are never sent back to users in responses
-- Secure authentication for order tracking
+This comprehensive workflow diagram shows:
+- **Complete shopping flow** from query to order completion
+- **Tracking phase** with authentication
+- **Data architecture** and service integrations
+- **Order status progression** 
+- **Security measures** for password and payment protection
 
-### Data Privacy
-- User details stored securely in encrypted format
-- Payment information handled by Razorpay's secure gateway
-- No sensitive data exposed in conversation logs
-
----
-
-## User Experience Flow
-
-### Shopping Journey
-1. **Discovery** → User asks about T-shirt
-2. **Selection** → Agent shows products with details
-3. **Customization** → User selects size and confirms
-4. **Registration** → User provides details and password
-5. **Payment** → Secure payment through Razorpay
-6. **Confirmation** → Email confirmation and tracking ID
-
-### Tracking Journey
-1. **Login** → User enters mobile and password
-2. **Authentication** → Agent welcomes user back
-3. **Tracking** → User provides tracking ID
-4. **Updates** → Agent shows order status and progress
-
----
-
-## Technical Implementation Notes
-
-### Agent Capabilities Required
-- Natural language processing
-- Product catalog integration
-- User authentication
-- Payment gateway integration
-- Email automation
-- Order tracking system
-- Database management
-
-### Integration Points
-- **Supabase**: Database operations
-- **Razorpay**: Payment processing
-- **Email Service**: Automated confirmations
-- **Product API**: Inventory management
-- **Shipping API**: Tracking updates
-
----
-
-## Error Handling
-
-### Common Scenarios
-1. **Product Out of Stock** → Show alternatives
-2. **Payment Failure** → Retry options
-3. **Invalid Credentials** → Clear error messages
-4. **Network Issues** → Retry mechanisms
-5. **Invalid Tracking ID** → Help and support
-
----
-
-## Success Metrics
-
-### Order Completion Rate
-- Percentage of initiated orders completed
-- Average time from query to payment
-- Customer satisfaction scores
-
-### Support Metrics
-- Tracking system usage
-- Customer service interactions
-- Return/exchange handling
-
----
-
-This workflow ensures a seamless shopping experience while maintaining security and providing excellent customer service throughout the order lifecycle.
+The diagrams illustrate every step of your Fetch.ai merchandise shopping agent workflow!
